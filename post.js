@@ -64,6 +64,31 @@ var sidh	= {
 		}
 	}); },
 
+	keyPairFromSeed: function (seed) { return initiated.then(function () {
+		var seedBuffer 			= Module._malloc(32);
+		Module.HEAPU8.set(seed, seedBuffer);
+		var publicKeyBuffer		= Module._malloc(publicKeyBytes);
+		var privateKeyBuffer	= Module._malloc(privateKeyBytes);
+
+		try {
+			
+			var returnValue	= Module._sidhjs_keypair_seed(
+				seedBuffer,
+				publicKeyBuffer,
+				privateKeyBuffer
+			);
+
+			return dataReturn(returnValue, {
+				publicKey: dataResult(publicKeyBuffer, publicKeyBytes),
+				privateKey: dataResult(privateKeyBuffer, privateKeyBytes)
+			});
+		}
+		finally {
+			dataFree(publicKeyBuffer);
+			dataFree(privateKeyBuffer);
+		}
+	}); },
+
 	encrypt: function (message, publicKey) { return initiated.then(function () {
 		if (message.length > (plaintextBytes - 1)) {
 			throw new Error('Plaintext length exceeds sidh.plaintextBytes.');

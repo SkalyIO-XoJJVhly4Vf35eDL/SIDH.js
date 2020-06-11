@@ -1,18 +1,19 @@
 all:
-	rm -rf dist SIDH libsodium 2> /dev/null
+SHELL:=/bin/bash
+all:
+	rm -rf dist 2> /dev/null
 	mkdir dist
-
-	git clone --depth 1 -b stable https://github.com/jedisct1/libsodium
+	if [ ! -d libsodium ]; then git clone --depth 1 -b stable https://github.com/jedisct1/libsodium; fi;
 	cd libsodium ; emconfigure ./configure --enable-minimal --disable-shared
 
-	git clone -b v3.0 --depth 1 https://github.com/Microsoft/PQCrypto-SIDH SIDH
+	if [ ! -d SIDH ]; then git clone -b v3.3_patched --depth 1 https://github.com/SkalyIO/PQCrypto-SIDH SIDH; fi;
 
 	bash -c ' \
 		args="$$(echo " \
 			--memory-init-file 0 \
 			-s SINGLE_FILE=1 \
 			-DCYPHERTEXT_LEN=123 \
-			-D_GENERIC_ -D__LINUX__ -D_X86_ \
+			-D_GENERIC_ -D__NIX__ -D_X86_ \
 			-s TOTAL_MEMORY=16777216 -s TOTAL_STACK=8388608 \
 			-s ASSERTIONS=0 \
 			-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
@@ -25,6 +26,7 @@ all:
 			-ISIDH/src/P503 \
 			$$(find libsodium/src/libsodium -type f -name '\\*.c') \
 			SIDH/src/sha3/*.c \
+			SIDH/src/random/*.c \
 			SIDH/src/P503/generic/*.c \
 			SIDH/src/P503/P503.c \
 			sidh.c \
@@ -37,6 +39,7 @@ all:
 				'"'"'_malloc'"'"', \
 				'"'"'_sidhjs_init'"'"', \
 				'"'"'_sidhjs_keypair'"'"', \
+				'"'"'_sidhjs_keypair_seed'"'"', \
 				'"'"'_sidhjs_encrypt'"'"', \
 				'"'"'_sidhjs_decrypt'"'"', \
 				'"'"'_sidhjs_public_key_bytes'"'"', \
@@ -88,7 +91,7 @@ all:
 	sed -i 's|use asm||g' dist/sidh.js
 	sed -i 's|require(|eval("require")(|g' dist/sidh.js
 
-	rm -rf SIDH libsodium dist/sidh.*.js
+	rm -rf dist/sidh.*.js
 
 clean:
 	rm -rf dist SIDH libsodium

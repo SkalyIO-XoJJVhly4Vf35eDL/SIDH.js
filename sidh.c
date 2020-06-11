@@ -29,6 +29,14 @@ long sidhjs_keypair (
 	return crypto_kem_keypair_SIKEp503(public_key, private_key);
 }
 
+long sidhjs_keypair_seed (
+	uint8_t* seed,
+	uint8_t* public_key,
+	uint8_t* private_key
+) {
+	return crypto_kem_keypair_seed_SIKEp503(seed, public_key, private_key);
+}
+
 long sidhjs_encrypt (
 	uint8_t* message,
 	long message_len,
